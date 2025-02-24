@@ -1,0 +1,36 @@
+name: Test Build
+
+on:
+  workflow_dispatch:  # Allow manual triggering for testing
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      # Your proxy setup would go here
+      # - name: Setup Build Security Proxy
+      #   uses: your-company/setup-proxy@v1
+      #   with:
+      #     proxy-config: ${{ secrets.PROXY_CONFIG }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t test-app:latest .
+          
+      - name: Test container
+        run: |
+          docker run -d -p 3000:3000 --name test-container test-app:latest
+          sleep 5  # Wait for container to start
+          curl http://localhost:3000/
+          curl http://localhost:3000/test-external
+          docker logs test-container
+          
+      # Test Docker-in-Docker scenario
+      - name: Test Docker-in-Docker
+        run: |
+          docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock test-app:latest \
+          docker build -t nested-image -f Dockerfile.nested .
