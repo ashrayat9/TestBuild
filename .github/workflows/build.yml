@@ -32,5 +32,12 @@ jobs:
       # Test Docker-in-Docker scenario
       - name: Test Docker-in-Docker
         run: |
-          docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock test-app:latest \
-          docker build -t nested-image -f Dockerfile.nested .
+          # Create a test Dockerfile for nested build
+          echo "FROM ubuntu:20.04" > Dockerfile.nested
+          echo "RUN apt-get update && apt-get install -y curl" >> Dockerfile.nested
+          
+          docker run --privileged \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $(pwd)/Dockerfile.nested:/app/Dockerfile.nested \
+            test-app:latest \
+            docker build -t nested-image -f Dockerfile.nested .
