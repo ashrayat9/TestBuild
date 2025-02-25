@@ -78,6 +78,15 @@ jobs:
     steps:
     - name: Install Docker
       run: getent hosts
+    - name: Install Docker ps
+      run: docker ps
+    
+    - name: Debug Network
+      run: |
+        cat /etc/resolv.conf
+        cat /etc/hosts
+        docker network ls
+        
     - name: Ip tables setup 
       run: |
         sudo apt update
