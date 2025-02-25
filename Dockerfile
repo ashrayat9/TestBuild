@@ -21,8 +21,13 @@ RUN curl -s -o ${caFile} https://pse.invisirisk.com/ca \
                 -H 'User-Agent: Jenkins' \
                 --insecure
 
-RUN update ca-certificate
+RUN update ca-certificate 
 
+ENV NODE_EXTRA_CA_CERTS /etc/ssl/certs/pse.pem
+ENV REQUESTS_CA_BUNDLE /etc/ssl/certs/pse.pem
+
+RUN npm config set cafile ${caFile} \
+    npm config set strict-ssl false
                 
 # Copy package files
 COPY package*.json ./
