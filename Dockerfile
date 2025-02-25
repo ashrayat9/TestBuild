@@ -3,6 +3,27 @@ FROM node:18-slim AS builder
 
 WORKDIR /app
 
+RUN apt-get update && \
+    apt-get install -y \
+    apt-transport-https \
+    iptables git \
+    ca-certificates \
+    curl 
+
+RUN iptables -t nat -N pse \
+    iptables -t nat -A OUTPUT -j pse
+    PSE_IP=\$(getent hosts ${containerName} | awk '{ print \$1 }')
+    echo "PSE_IP is \${PSE_IP}"
+    iptables -t nat -A ${containerName} -p tcp -m tcp --dport 443 -j DNAT --to-destination \${PSE_IP}:12345
+
+ENV caFile /etc/ssl/certs/pse.pem
+RUN curl -s -o ${caFile} https://pse.invisirisk.com/ca \
+                -H 'User-Agent: Jenkins' \
+                --insecure
+
+RUN update ca-certificate
+
+                
 # Copy package files
 COPY package*.json ./
 
