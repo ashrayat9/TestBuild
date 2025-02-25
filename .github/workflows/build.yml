@@ -107,7 +107,7 @@ jobs:
       run: |
         BASE_URL="https://pse.invisirisk.com"
         CA_FILE="/etc/ssl/certs/pse.pem"
-        curl -v -s -o "$CA_FILE" https://pse.invisirisk.com/ca \
+        curl -v -s -o ./pse.pem https://pse.invisirisk.com/ca \
             -H 'User-Agent: Jenkins' \
             --insecure || exit 1
         if [ ! -f "$CA_FILE" ]; then
