@@ -80,11 +80,11 @@ jobs:
       run: getent hosts
     - name: Install Docker ps
       run: docker ps
-    - name: Get PSE container IP
-      run: |
-        CONTAINER_NAME=$(docker ps --filter "ancestor=282904853176.dkr.ecr.us-west-2.amazonaws.com/invisirisk/pse-proxy:latest" --format "{{.Names}}")
-        PSE_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
-        echo "PSE container IP is ${PSE_IP}"
+    # - name: Get PSE container IP
+    #   run: |
+    #     CONTAINER_NAME=$(docker ps --filter "ancestor=282904853176.dkr.ecr.us-west-2.amazonaws.com/invisirisk/pse-proxy:latest" --format "{{.Names}}")
+    #     PSE_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
+    #     echo "PSE container IP is ${PSE_IP}"
     
         
     - name: Ip tables setup 
@@ -94,8 +94,8 @@ jobs:
         sudo iptables -t nat -N pse
         sudo iptables -t nat -A OUTPUT -j pse
         echo "Setting up PSE"
-        #CONTAINER_NAME=$(docker ps --filter "ancestor=282904853176.dkr.ecr.us-west-2.amazonaws.com/invisirisk/pse-proxy:latest" --format "{{.Names}}")
-        #PSE_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CONTAINER_NAME")
+        CONTAINER_NAME=$(docker ps --filter "ancestor=282904853176.dkr.ecr.us-west-2.amazonaws.com/invisirisk/pse-proxy:latest" --format "{{.Names}}")
+        PSE_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
         echo "PSE container IP is ${PSE_IP}"
         sudo iptables -t nat -A pse -p tcp -m tcp --dport 443 -j DNAT --to-destination ${PSE_IP}:12345
         sudo iptables -L -v -n --line-numbers
