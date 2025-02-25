@@ -80,7 +80,8 @@ jobs:
       run: whoami
     - name: Ip tables setup 
       run: |
-        sudo apt install ip-tables
+        sudo apt update
+        sudo apt install iptables
         sudo iptables -t nat -N pse
         sudo iptables -t nat -A OUTPUT -j pse
         sudo echo "Setting up PSE"
