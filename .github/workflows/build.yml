@@ -77,7 +77,7 @@ jobs:
     #     node-version: [18.x]
     steps:
     - name: Install Docker
-      run: whoami
+      run: getent hosts
     - name: Ip tables setup 
       run: |
         sudo apt update
