@@ -25,7 +25,7 @@ jobs:
         with:
           url: '${{env.API_URL}}/utilityapi/v1/scan'
           method: 'POST'
-          data: '{"api_key": "${{secrets.VB_API_KEY}}"}'
+          data: '{"api_key": "pZLbsA13Cb43XOFKijs4cEUatABd18xJtT1apqcDls9egVGo6CpMpf5SrNjKigNKdCM3NCN-ZG0N5Fv1oKT7Qg"}'
       - name: Parse Response
         id: parseResponse
         run: echo "scan_id=${{fromJSON(steps.createScan.outputs.response).data.scan_id}}" >> "$GITHUB_OUTPUT"
@@ -41,7 +41,7 @@ jobs:
         id: fetchECRDetails
         uses: fjogeleit/http-request-action@v1.15.1
         with:
-            url: '${{env.API_URL}}/utilityapi/v1/registry?api_key=${{secrets.VB_API_KEY}}'
+            url: '${{env.API_URL}}/utilityapi/v1/registry?api_key=pZLbsA13Cb43XOFKijs4cEUatABd18xJtT1apqcDls9egVGo6CpMpf5SrNjKigNKdCM3NCN-ZG0N5Fv1oKT7Qg'
             method: 'GET'
       - name: Decoding VB Token
         id: parseToken
@@ -66,7 +66,7 @@ jobs:
         env:
           PSE_DEBUG_FLAG: --alsologtostderr
           POLICY_LOG: t
-          INVISIRISK_JWT_TOKEN: ${{secrets.VB_API_KEY}} 
+          INVISIRISK_JWT_TOKEN: pZLbsA13Cb43XOFKijs4cEUatABd18xJtT1apqcDls9egVGo6CpMpf5SrNjKigNKdCM3NCN-ZG0N5Fv1oKT7Qg
           INVISIRISK_PORTAL:  https://app.dev.veribom.com
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}     
     steps:
