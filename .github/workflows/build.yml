@@ -80,6 +80,13 @@ jobs:
       run: getent hosts
     - name: Install Docker ps
       run: docker ps
+    - name: helkl
+      run: getent hosts pse
+    - name: Get PSE container IP
+      run: |
+        CONTAINER_NAME=$(docker ps --filter "ancestor=282904853176.dkr.ecr.us-west-2.amazonaws.com/invisirisk/pse-proxy:latest" --format "{{.Names}}")
+        PSE_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
+        echo "PSE container IP is ${PSE_IP}"
     
         
     - name: Ip tables setup 
