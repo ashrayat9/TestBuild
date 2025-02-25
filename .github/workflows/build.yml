@@ -118,6 +118,7 @@ jobs:
           echo "Downloaded certificate is empty"
           exit 1
         fi
+        update-ca-certificates
     - name: Send start notification to PSE
       run: |
         send_start_notification() {
