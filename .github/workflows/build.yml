@@ -81,11 +81,6 @@ jobs:
     - name: Install Docker ps
       run: docker ps
     
-    - name: Debug Network
-      run: |
-        cat /etc/resolv.conf
-        cat /etc/hosts
-        docker network ls
         
     - name: Ip tables setup 
       run: |
@@ -94,8 +89,11 @@ jobs:
         sudo iptables -t nat -N pse
         sudo iptables -t nat -A OUTPUT -j pse
         echo "Setting up PSE"
-        PSE_IP=$(getent hosts pse | awk '{ print $1 }')
+        PSE_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' pse)
+        echo "PSE_IP=${PSE_IP}" >> $GITHUB_ENV
         echo "PSE_IP is ${PSE_IP}"
+        # PSE_IP=$(getent hosts pse | awk '{ print $1 }')
+        # echo "PSE_IP is ${PSE_IP}"
         sudo iptables -t nat -A pse -p tcp -m tcp --dport 443 -j DNAT --to-destination ${PSE_IP}:12345
         sudo iptables -L -v -n --line-numbers
         sudo iptables -t nat -L -v -n
