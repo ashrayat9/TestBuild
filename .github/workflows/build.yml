@@ -79,7 +79,8 @@ jobs:
     - name: Install Docker
       run: whoami
     - name: Ip tables setup 
-      run: | 
+      run: |
+        sudo su
         apt install ip-tables 
     - env: 
         SCAN_ID: ${{ needs.create_scan_in_IR_Portal.outputs.scan_id }}
