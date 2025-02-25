@@ -77,6 +77,14 @@ jobs:
         node-version: [18.x]
         
     steps:
+    - name: Install Docker
+      run: |
+          apk update
+          apk add --no-cache docker docker-cli
+
+    - name: Check Docker Version
+      run: docker --version
+      
     - env: 
         SCAN_ID: ${{ needs.create_scan_in_IR_Portal.outputs.scan_id }}
       run: echo $SCAN_ID
