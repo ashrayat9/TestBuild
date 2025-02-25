@@ -70,11 +70,19 @@ jobs:
           INVISIRISK_PORTAL:  https://app.dev.veribom.com
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}     
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
+    - env: 
+        SCAN_ID: ${{ needs.create_scan_in_IR_Portal.outputs.scan_id }}
+      run: echo $SCAN_ID
+    - uses: invisirisk/pse-action@v1.0.7
+      with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          SCAN_ID: ${{ needs.create_scan_in_IR_Portal.outputs.scan_id }}
+          
+    - name: Check out code
+      uses: actions/checkout@v3
 
-      - name: Build Docker image
-        run: |
+    - name: Build Docker image
+      run: |
           docker build -t test-app:latest .
           
       # - name: Test container
