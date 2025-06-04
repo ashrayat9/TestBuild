@@ -1,0 +1,25 @@
+{
+	"services": {
+		"invisirisk": {
+			"url": "{{.PolicyBaseUrl}}",
+			"credentials": {
+				"bearer": {
+					"token": "{{.PolicyToken}}"
+				}
+			},
+			"persist": true
+		}
+	},
+	"bundles": {
+		"invisirisk": {
+			"resource": "{{.PolicyBundle}}?api_key={{.PolicyToken}}",
+			"polling":{
+				"min_delay_seconds": 10800,
+				"max_delay_seconds": 10800
+			}
+		}
+	},
+	"decision_logs": {
+		"console": {{.PolicyLog}}
+	}
+}

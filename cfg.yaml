@@ -1,0 +1,30 @@
+gomodule-proxies:    
+  - proxy.golang.org
+  - sum.golang.org
+git-repos:
+  - github.com
+maven-repos:
+  - repo.maven.apache.org/maven2
+  - repo1.maven.org/maven2
+npm-repos:
+  - registry.npmjs.org
+  - pkg-npm.githubusercontent.com
+  - npm.pkg.github.com
+pypi-repos:
+  - pypi.org
+  - files.pythonhosted.org
+composer-repos:
+  - packagist.org
+  - repo.packagist.com
+  - codeload.github.com
+alpine-repos:
+  - dl-cdn.alpinelinux.org
+  - alpine.global.ssl.fastly.net
+  - alpine.github.io
+rubygems-repos:
+  - rubygems.org
+  - api.rubygems.org
+  - index.rubygems.org
+nuget-repos:
+  - api.nuget.org
+  - pkgs.dev.azure.com
