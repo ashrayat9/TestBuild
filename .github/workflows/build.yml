@@ -3,14 +3,19 @@ name: Go Build (Windows)
 on: [push, pull_request]
 
 jobs:
-  build:
+  install:
     runs-on: windows-latest
 
     steps:
+
+    - name: check verison
+      run: $PSVersionTable
     - uses: actions/checkout@v3
 
-    - uses: actions/setup-go@v5
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
       with:
-        go-version: '1.22'
+        node-version: '20'  # or any version you need
 
-    - run: go build ./...
+    - name: Install dependencies
+      run: npm install
