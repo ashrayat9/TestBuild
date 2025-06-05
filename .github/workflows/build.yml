@@ -10,7 +10,23 @@ jobs:
 
     - name: check verison
       run: $PSVersionTable
-    - uses: actions/checkout@v3
+
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup pse
+      env:
+        INVISIRISK_PORTAL: https://app.stage.invisirisk.com
+        INVISIRISK_JWT_TOKEN: vVghHjvY_Z7wOtH9bMHI3T6RgyML0MdgG6TW-gyRTJpvivnKjMpGH-uImz8OUGHPBfk7ZiprFvCFT7UwIfpSHQ
+      run: ./pse.exe serve --config cfg.yaml --leaks leaks.toml --policy policy.json
+
+    - name: Configure Certificate
+      run: |
+        Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck
+        certutil -user -addstore "Root" .\pse.crt
+
+    - name: Start session
+      run: Invoke-WebRequest -Uri 'https://pse.invisirisk.com/start' -Method POST -Headers $headers -Body $params -UseBasicParsing
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -19,3 +35,7 @@ jobs:
 
     - name: Install dependencies
       run: npm install
+    
+    - name: End Session
+      run: Invoke-WebRequest -Uri 'https://pse.invisirisk.com/end' -Method POST -Headers $headers -Body $params -UseBasicParsing
+
