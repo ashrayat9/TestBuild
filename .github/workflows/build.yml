@@ -21,21 +21,32 @@ jobs:
       run: ./pse.exe serve --config cfg.yaml --leaks leaks.toml --policy policy.json
 
     - name: Configure Certificate
+      env:
+        HTTP_PROXY: http://127.0.0.1:3128
+        HTTPS_PROXY: http://127.0.0.1:3128
       run: |
-        Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck
+        Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
         certutil -user -addstore "Root" .\pse.crt
-
+        
     - name: Start session
-      run: Invoke-WebRequest -Uri 'https://pse.invisirisk.com/start' -Method POST -Headers $headers -Body $params -UseBasicParsing
-
+      env:
+        HTTP_PROXY: http://127.0.0.1:3128
+        HTTPS_PROXY: http://127.0.0.1:3128
+      run: Invoke-WebRequest -Uri 'https://pse.invisirisk.com/start' -Method POST -Headers $headers -Body $params -UseBasicParsing -Proxy "http://127.0.0.1:3128"
+      
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'  # or any version you need
-
+        node-version: '20'
+        
     - name: Install dependencies
+      env:
+        HTTP_PROXY: http://127.0.0.1:3128
+        HTTPS_PROXY: http://127.0.0.1:3128
       run: npm install
     
     - name: End Session
-      run: Invoke-WebRequest -Uri 'https://pse.invisirisk.com/end' -Method POST -Headers $headers -Body $params -UseBasicParsing
-
+      env:
+        HTTP_PROXY: http://127.0.0.1:3128
+        HTTPS_PROXY: http://127.0.0.1:3128
+      run: Invoke-WebRequest -Uri 'https://pse.invisirisk.com/end' -Method POST -Headers $headers -Body $params -UseBasicParsing -Proxy "http://127.0.0.1:3128"
