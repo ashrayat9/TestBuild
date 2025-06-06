@@ -22,6 +22,8 @@ jobs:
         Start-Process powershell -ArgumentList "-Command", "& '.\pse.exe' serve --config cfg.yaml --leaks leaks.toml --policy policy.json --global-session true *> pse.log" -WindowStyle Hidden
         #./pse.exe serve --config cfg.yaml --leaks leaks.toml --policy policy.json --global-session true *>&1 | Out-File -FilePath "pse.log" -Append &
         netsh winhttp set proxy proxy-server="127.0.0.1:3128"
+        Get-Process
+
     - name: Check if pse is running 
       run: |
         $processName = "pse"  # Without .exe extension
