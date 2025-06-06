@@ -43,6 +43,7 @@ jobs:
         netsh winhttp show proxy
         Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
         ls
+        cat pse.crt
         certutil -user -addstore "Root" .\pse.crt
         
     - name: Start session
