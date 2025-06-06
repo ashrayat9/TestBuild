@@ -61,9 +61,9 @@ jobs:
         #certutil -user -addstore "Root" .\pse.crt
         
     - name: Start session
-      env:
-        HTTP_PROXY: http://127.0.0.1:3128
-        HTTPS_PROXY: http://127.0.0.1:3128
+      # env:
+      #   HTTP_PROXY: http://127.0.0.1:3128
+      #   HTTPS_PROXY: http://127.0.0.1:3128
       run: Invoke-WebRequest -Uri 'https://pse.invisirisk.com/start' -Method POST -Headers $headers -Body $params -UseBasicParsing
       
     - name: Set up Node.js
