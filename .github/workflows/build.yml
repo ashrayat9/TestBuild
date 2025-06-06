@@ -19,8 +19,7 @@ jobs:
         INVISIRISK_PORTAL: https://app.stage.invisirisk.com
         INVISIRISK_JWT_TOKEN: vVghHjvY_Z7wOtH9bMHI3T6RgyML0MdgG6TW-gyRTJpvivnKjMpGH-uImz8OUGHPBfk7ZiprFvCFT7UwIfpSHQ
       run: |
-        #Start-Process powershell -ArgumentList "-Command", "& '.\pse.exe' serve --config cfg.yaml --leaks leaks.toml --policy policy.json *> pse.log" -WindowStyle Hidden
-        Start-Process .\pse.exe serve --config cfg.yaml --leaks leaks.toml --policy policy.json
+        Start-Process powershell -ArgumentList "-Command", "& '.\pse.exe' serve --config cfg.yaml --leaks leaks.toml --policy policy.json *> pse.log" -WindowStyle Hidden
         netsh winhttp set proxy proxy-server="127.0.0.1:3128"
         Get-Process
 
@@ -38,13 +37,17 @@ jobs:
     - name: Configure Certificate
       env:
         HTTP_PROXY: http://127.0.0.1:3128
+        http_proxy: http://127.0.0.1:3128
+        https_proxy: http://127.0.0.1:3128
         HTTPS_PROXY: http://127.0.0.1:3128
       run: |
         netsh winhttp show proxy
         Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
         ls
         cat pse.crt
-        certutil -user -addstore "Root" .\pse.crt
+        Get-ChildItem -Path Cert:\CurrentUser\Root
+        Import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root
+        #certutil -user -addstore "Root" .\pse.crt
         
     - name: Start session
       env:
