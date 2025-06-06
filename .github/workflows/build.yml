@@ -37,6 +37,7 @@ jobs:
         HTTPS_PROXY: http://127.0.0.1:3128
       run: |
         Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
+        ls
         certutil -user -addstore "Root" .\pse.crt
         
     - name: Start session
