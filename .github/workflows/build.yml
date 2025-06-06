@@ -44,11 +44,16 @@ jobs:
         Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
         ls
         cat pse.crt
+        try {
         $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2(".\pse.crt")
         $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "CurrentUser")
         $store.Open("ReadWrite")
         $store.Add($cert)
         $store.Close()
+        Write-Host "✅ Certificate imported."
+        } catch {
+        Write-Error "❌ Import failed: $_"
+        }
         #import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root
         #certutil -user -addstore "Root" .\pse.crt
         
