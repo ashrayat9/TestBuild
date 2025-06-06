@@ -18,8 +18,19 @@ jobs:
       env:
         INVISIRISK_PORTAL: https://app.stage.invisirisk.com
         INVISIRISK_JWT_TOKEN: vVghHjvY_Z7wOtH9bMHI3T6RgyML0MdgG6TW-gyRTJpvivnKjMpGH-uImz8OUGHPBfk7ZiprFvCFT7UwIfpSHQ
-      run: ./pse.exe serve --config cfg.yaml --leaks leaks.toml --policy policy.json
-
+      run: |
+        Start-Process powershell -ArgumentList "-Command", "& '.\pse.exe' serve --config cfg.yaml --leaks leaks.toml --policy policy.json --global-session true *> pse.log" -WindowStyle Hidden
+        #./pse.exe serve --config cfg.yaml --leaks leaks.toml --policy policy.json --global-session true *>&1 | Out-File -FilePath "pse.log" -Append &
+        netsh winhttp set proxy proxy-server="127.0.0.1:3128" bypass-list="localhost;127.0.0.1"
+    - name: Check if pse is running 
+      run: |
+        $processName = "pse"  # Without .exe extension
+        $process = Get-Process -Name $processName -ErrorAction SilentlyContinue
+        if ($process) {
+        Write-Host "Process $processName is running (PID: $($process.Id))"
+        } else {
+        Write-Host "Process $processName is not running"
+         }
     - name: Configure Certificate
       env:
         HTTP_PROXY: http://127.0.0.1:3128
