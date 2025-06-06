@@ -44,20 +44,11 @@ jobs:
         Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
         ls
         cat pse.crt
-        # Load the cert from file
         $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2(".\pse.crt")
-
-        # Open the user's Root certificate store (no admin required)
         $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "CurrentUser")
         $store.Open("ReadWrite")
-
-        # Add the cert
         $store.Add($cert)
-
-        # Always close the store
         $store.Close()
-
-        Write-Host "✅ Certificate imported successfully to CurrentUser\Root"
         #import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root
         #certutil -user -addstore "Root" .\pse.crt
         
