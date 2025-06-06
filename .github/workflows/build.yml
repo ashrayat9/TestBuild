@@ -44,19 +44,11 @@ jobs:
         Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
         ls
         cat pse.crt
-        Write-Host "Current Directory:"
-        Get-Location
-
-        Write-Host "Files:"
-        Get-ChildItem -Path .
-
-        Write-Host "Attempting cert load..."
-        try {
-          $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2(".\pse.crt")
-          Write-Host "Loaded cert subject: $($cert.Subject)"
-        } catch {
-          Write-Error "Failed to load cert: $_"
-        }
+        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2(".\pse.crt")
+        $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "CurrentUser")
+        $store.Open("ReadWrite")
+        $store.Add($cert)
+        $store.Close()
         #mport-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root
         #certutil -user -addstore "Root" .\pse.crt
         
