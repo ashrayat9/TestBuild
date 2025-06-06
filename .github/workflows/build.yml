@@ -21,7 +21,7 @@ jobs:
       run: |
         Start-Process powershell -ArgumentList "-Command", "& '.\pse.exe' serve --config cfg.yaml --leaks leaks.toml --policy policy.json --global-session true *> pse.log" -WindowStyle Hidden
         #./pse.exe serve --config cfg.yaml --leaks leaks.toml --policy policy.json --global-session true *>&1 | Out-File -FilePath "pse.log" -Append &
-        netsh winhttp set proxy proxy-server="127.0.0.1:3128" bypass-list="localhost;127.0.0.1"
+        netsh winhttp set proxy proxy-server="127.0.0.1:3128"
     - name: Check if pse is running 
       run: |
         $processName = "pse"  # Without .exe extension
@@ -31,11 +31,14 @@ jobs:
         } else {
         Write-Host "Process $processName is not running"
          }
+        netsh winhttp show proxy
+
     - name: Configure Certificate
       env:
         HTTP_PROXY: http://127.0.0.1:3128
         HTTPS_PROXY: http://127.0.0.1:3128
       run: |
+        netsh winhttp show proxy
         Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
         ls
         certutil -user -addstore "Root" .\pse.crt
