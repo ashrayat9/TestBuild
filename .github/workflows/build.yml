@@ -20,6 +20,7 @@ jobs:
         INVISIRISK_JWT_TOKEN: vVghHjvY_Z7wOtH9bMHI3T6RgyML0MdgG6TW-gyRTJpvivnKjMpGH-uImz8OUGHPBfk7ZiprFvCFT7UwIfpSHQ
       run: |
         Start-Process powershell -ArgumentList "-Command", "& '.\pse.exe' serve --config cfg.yaml --leaks leaks.toml --policy policy.json *> pse.log" -WindowStyle Hidden
+        sleep 15
         netsh winhttp set proxy proxy-server="127.0.0.1:3128"
         Get-Process
 
