@@ -39,13 +39,15 @@ jobs:
       env:
         HTTP_PROXY: http://127.0.0.1:3128
         HTTPS_PROXY: http://127.0.0.1:3128
+      shell: pwsh
       run: |
         netsh winhttp show proxy
         Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
         ls
         cat pse.crt
         Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-        dotnet dev-certs https --trust --import .\pse.crt
+        Import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root -Confirm:$false
+        #dotnet dev-certs https --trust --import .\pse.crt
         # import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root -Confirm:$false
         #certutil -f -user -addstore "Root" .\pse.crt
         
