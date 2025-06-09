@@ -45,7 +45,7 @@ jobs:
         ls
         cat pse.crt
         Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-        Import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root -Verbose -ErrorAction Stop
+        dotnet dev-certs https --trust --import .\pse.crt
         # import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root -Confirm:$false
         #certutil -f -user -addstore "Root" .\pse.crt
         
