@@ -35,6 +35,9 @@ jobs:
         Write-Host "Process $processName is not running"
          }
         netsh winhttp show proxy
+        netstat -ano | findstr LISTENING
+
+
 
     - name: Configure Certificate
       env:
@@ -73,7 +76,10 @@ jobs:
       env:
         HTTP_PROXY: http://127.0.0.1:3128
         HTTPS_PROXY: http://127.0.0.1:3128
-      run: npm install
+      run: |
+        $env:NODE_EXTRA_CA_CERTS = "$(Get-Location)\pse.crt"
+        $env:NODE_EXTRA_CA_CERTS
+        npm install
     
     - name: End Session
       env:
