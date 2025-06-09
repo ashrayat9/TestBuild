@@ -39,7 +39,7 @@ jobs:
       env:
         HTTP_PROXY: http://127.0.0.1:3128
         HTTPS_PROXY: http://127.0.0.1:3128
-      shell: pwsh
+      #shell: pwsh
       run: |
         netsh winhttp show proxy
         Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
