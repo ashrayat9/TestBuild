@@ -54,12 +54,12 @@ jobs:
           Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object { $_.Subject -like "*pse*" }
       shell: pwsh    
     - name: Start session
-      # env:
-      #   HTTP_PROXY: http://127.0.0.1:3128
-      #   HTTPS_PROXY: http://127.0.0.1:3128
+      env:
+        HTTP_PROXY: http://127.0.0.1:3128
+        HTTPS_PROXY: http://127.0.0.1:3128
       run: |
-        Invoke-WebRequest -Uri 'https://pse.invisirisk.com/start' -Method POST -Headers $headers -Body $params -UseBasicParsing
-        curl https://www.google.com
+        Invoke-WebRequest -Uri 'https://pse.invisirisk.com/start' -Method POST -Headers $headers -Body $params -UseBasicParsing -Verbose
+        Invoke-WebRequest -Uri https://www.google.com -Verbose
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
