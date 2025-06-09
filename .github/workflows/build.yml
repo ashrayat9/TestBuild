@@ -12,7 +12,7 @@ jobs:
         id: createScan
         uses: fjogeleit/http-request-action@v1.15.1
         with:
-          url: '${{env.API_URL}}/utilityapi/v1/scan'
+          url: 'https://app.stage.invisirisk.com/utilityapi/v1/scan'
           method: 'POST'
           data: '{"api_key": "vVghHjvY_Z7wOtH9bMHI3T6RgyML0MdgG6TW-gyRTJpvivnKjMpGH-uImz8OUGHPBfk7ZiprFvCFT7UwIfpSHQ"}'
       - name: Parse Response
