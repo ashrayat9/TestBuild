@@ -63,13 +63,16 @@ jobs:
         Invoke-WebRequest -Uri 'https://pse.invisirisk.com/start' -Method POST -Headers $headers -Body $params -UseBasicParsing -Verbose
     - name: Set up Node.js
       uses: actions/setup-node@v4
+      env:
+        HTTP_PROXY: http://127.0.0.1:3128
+        HTTPS_PROXY: http://127.0.0.1:3128
       with:
         node-version: '20'
         
     - name: Install dependencies
-      # env:
-      #   HTTP_PROXY: http://127.0.0.1:3128
-      #   HTTPS_PROXY: http://127.0.0.1:3128
+      env:
+        HTTP_PROXY: http://127.0.0.1:3128
+        HTTPS_PROXY: http://127.0.0.1:3128
       run: npm install
     
     - name: End Session
