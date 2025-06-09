@@ -46,7 +46,14 @@ jobs:
         cat pse.crt
         Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
         # import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root -Confirm:$false
-        echo y | certutil -f -user -addstore "Root" .\pse.crt
+        #echo y | certutil -f -user -addstore "Root" .\pse.crt
+        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
+        $cert.Import((Resolve-Path .\pse.crt))
+        $store = New-Object System.Security.Cryptography.X509Certificates.X509Store "Root", "CurrentUser"
+        $store.Open("ReadWrite")
+        $store.Add($cert)
+        $store.Close()
+        Write-Host "Certificate installed."
         
     - name: Start session
       env:
