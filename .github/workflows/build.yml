@@ -45,7 +45,8 @@ jobs:
         ls
         cat pse.crt
         Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-        import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root -Confirm:$false
+        Import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root -Verbose -ErrorAction Stop
+        # import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root -Confirm:$false
         #certutil -f -user -addstore "Root" .\pse.crt
         
     - name: Start session
