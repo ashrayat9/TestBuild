@@ -20,6 +20,7 @@ jobs:
         INVISIRISK_JWT_TOKEN: vVghHjvY_Z7wOtH9bMHI3T6RgyML0MdgG6TW-gyRTJpvivnKjMpGH-uImz8OUGHPBfk7ZiprFvCFT7UwIfpSHQ
       run: |
         Start-Process powershell -ArgumentList "-Command", "& '.\pse.exe' serve --config cfg.yaml --leaks leaks.toml --policy policy.json *> pse.log" -WindowStyle Hidden
+        ls
         sleep 15
         netsh winhttp set proxy proxy-server="127.0.0.1:3128"
         Get-Process
@@ -58,8 +59,8 @@ jobs:
         HTTP_PROXY: http://127.0.0.1:3128
         HTTPS_PROXY: http://127.0.0.1:3128
       run: |
+        ls
         Invoke-WebRequest -Uri 'https://pse.invisirisk.com/start' -Method POST -Headers $headers -Body $params -UseBasicParsing -Verbose
-        Invoke-WebRequest -Uri https://www.google.com -Verbose
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
@@ -76,3 +77,6 @@ jobs:
         HTTP_PROXY: http://127.0.0.1:3128
         HTTPS_PROXY: http://127.0.0.1:3128
       run: Invoke-WebRequest -Uri 'https://pse.invisirisk.com/end' -Method POST -Headers $headers -Body $params -UseBasicParsing -Proxy "http://127.0.0.1:3128"
+
+    - name: List logs maybe
+      run: cat pse.log
