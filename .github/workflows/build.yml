@@ -45,8 +45,8 @@ jobs:
         Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
         ls
         cat pse.crt
-        Import-Certificate -FilePath .\\pse.crt -CertStoreLocation Cert:\LocalMachine\Root
-
+        #Import-Certificate -FilePath .\\pse.crt -CertStoreLocation Cert:\LocalMachine\Root
+        certutil -addstore -f "Root" .\\pse.crt
         
         
     - name: Start session
