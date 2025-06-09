@@ -3,13 +3,37 @@ name: Go Build (Windows)
 on: [push, pull_request]
 
 jobs:
+  create_scan_in_IR_Portal:
+    runs-on: ubuntu-latest
+    outputs:
+      scan_id: ${{ steps.parseResponse.outputs.scan_id }}
+    steps:
+      - name: Initiating SBOM Scan
+        id: createScan
+        uses: fjogeleit/http-request-action@v1.15.1
+        with:
+          url: '${{env.API_URL}}/utilityapi/v1/scan'
+          method: 'POST'
+          data: '{"api_key": "${{secrets.VB_API_KEY_DAILY}}"}'
+      - name: Parse Response
+        id: parseResponse
+        run: echo "scan_id=${{fromJSON(steps.createScan.outputs.response).data.scan_id}}" >> "$GITHUB_OUTPUT"
+
   install:
     runs-on: windows-latest
-
+    needs: [create_scan_in_IR_Portal]
     steps:
+    - name: Initiating SBOM Scan
+      id: createScan
+      uses: fjogeleit/http-request-action@v1.15.1
+      with:
+          url: '${{env.API_URL}}/utilityapi/v1/scan'
+          method: 'POST'
+          data: '{"api_key": "${{secrets.VB_API_KEY_DAILY}}"}'
 
-    - name: check verison
-      run: $PSVersionTable
+    - name: Parse Response
+      id: parseResponse
+      run: echo "scan_id=${{fromJSON(steps.createScan.outputs.response).data.scan_id}}" >> "$GITHUB_OUTPUT"
 
     - name: Checkout code
       uses: actions/checkout@v3
@@ -18,6 +42,7 @@ jobs:
       env:
         INVISIRISK_PORTAL: https://app.stage.invisirisk.com
         INVISIRISK_JWT_TOKEN: vVghHjvY_Z7wOtH9bMHI3T6RgyML0MdgG6TW-gyRTJpvivnKjMpGH-uImz8OUGHPBfk7ZiprFvCFT7UwIfpSHQ
+        SCAN_ID: ${{ needs.create_scan_in_IR_Portal.outputs.scan_id }}
       run: |
         Start-Process powershell -ArgumentList "-Command", "& '.\pse.exe' serve --config cfg.yaml --leaks leaks.toml --policy policy.json *> pse.log" -WindowStyle Hidden
         ls
@@ -38,7 +63,6 @@ jobs:
         netstat -ano | findstr LISTENING
 
 
-
     - name: Configure Certificate
       env:
         HTTP_PROXY: http://127.0.0.1:3128
@@ -57,13 +81,100 @@ jobs:
       run: |
           Get-ChildItem -Path Cert:\LocalMachine\Root | Where-Object { $_.Subject -like "*pse*" }
       shell: pwsh    
+    # - name: Start session
+    #   env:
+    #     HTTP_PROXY: http://127.0.0.1:3128
+    #     HTTPS_PROXY: http://127.0.0.1:3128
+    #     SCAN_ID: ${{ needs.create_scan_in_IR_Portal.outputs.scan_id }}
+    #   run: |
+    #     ls
+    #     Invoke-WebRequest -Uri 'https://pse.invisirisk.com/start' -Method POST -Headers $headers -Body $params -UseBasicParsing -Verbose
+    
     - name: Start session
       env:
         HTTP_PROXY: http://127.0.0.1:3128
         HTTPS_PROXY: http://127.0.0.1:3128
+        SCAN_ID: ${{ needs.create_scan_in_IR_Portal.outputs.scan_id }}
+      shell: pwsh
       run: |
-        ls
-        Invoke-WebRequest -Uri 'https://pse.invisirisk.com/start' -Method POST -Headers $headers -Body $params -UseBasicParsing -Verbose
+        # Initialize retry variables
+        $RETRY_DELAY = 5
+        $ATTEMPT = 1
+        $MAX_ATTEMPTS = 3
+
+        # URL encode function
+        function UrlEncode($value) {
+            [System.Web.HttpUtility]::UrlEncode($value)
+        }
+
+        # Get Git information with fallbacks for CI environment
+        try { $git_url = git config --get remote.origin.url } catch { $git_url = "https://github.com/$env:GITHUB_REPOSITORY.git" }
+        try { $git_branch = git rev-parse --abbrev-ref HEAD } catch { $git_branch = $env:GITHUB_REF -replace '^refs/heads/', '' }
+        try { $git_commit = git rev-parse HEAD } catch { $git_commit = $env:GITHUB_SHA }
+        try { $repo_name = [System.IO.Path]::GetFileNameWithoutExtension($git_url) } catch { $repo_name = $env:GITHUB_REPOSITORY }
+
+        # Build URL for the GitHub run
+        $build_url = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+
+        # Build parameters
+        $params = @{
+            builder = UrlEncode "samplegithub"
+            id = UrlEncode $env:SCAN_ID
+            build_id = UrlEncode $env:GITHUB_RUN_ID
+            build_url = UrlEncode $build_url
+            project = UrlEncode $repo_name
+            workflow = UrlEncode $env:GITHUB_WORKFLOW
+            builder_url = UrlEncode $env:GITHUB_SERVER_URL
+            scm = UrlEncode "git"
+            scm_commit = UrlEncode $git_commit
+            scm_branch = UrlEncode $git_branch
+            scm_origin = UrlEncode $git_url
+        }
+
+        # Convert to URL-encoded form data
+        $formData = ($params.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join '&'
+
+        Write-Host "Sending start signal to PSE service"
+
+        # Try to send the start signal with retries
+        while ($ATTEMPT -le $MAX_ATTEMPTS) {
+            Write-Host "Attempt $ATTEMPT of $MAX_ATTEMPTS..."
+
+            try {
+                $response = Invoke-WebRequest -Uri 'https://pse.invisirisk.com/start' `
+                    -Method POST `
+                    -Headers @{
+                        'Content-Type' = 'application/x-www-form-urlencoded'
+                        'User-Agent' = 'pse-action'
+                    } `
+                    -Body $formData `
+                    -UseBasicParsing `
+                    -TimeoutSec 10 `
+                    -ErrorAction Stop
+
+                Write-Host "Start signal sent successfully (HTTP $($response.StatusCode))"
+                Write-Host "Response: $($response.Content)"
+                exit 0
+            }
+            catch {
+                $statusCode = $_.Exception.Response.StatusCode.value__
+                $responseBody = $_.ErrorDetails.Message
+
+                Write-Host "Failed to send start signal (HTTP $statusCode)"
+                Write-Host "Response: $responseBody"
+
+                if ($ATTEMPT -lt $MAX_ATTEMPTS) {
+                    Write-Host "Retrying in $RETRY_DELAY seconds..."
+                    Start-Sleep -Seconds $RETRY_DELAY
+                    $RETRY_DELAY = $RETRY_DELAY * 2
+                }
+                $ATTEMPT++
+            }
+        }
+
+        Write-Host "ERROR: Failed to send start signal after $MAX_ATTEMPTS attempts"
+        exit 1
+
     - name: Set up Node.js
       uses: actions/setup-node@v4
       env:
@@ -85,6 +196,7 @@ jobs:
       env:
         HTTP_PROXY: http://127.0.0.1:3128
         HTTPS_PROXY: http://127.0.0.1:3128
+        SCAN_ID: ${{ needs.create_scan_in_IR_Portal.outputs.scan_id }}
       run: Invoke-WebRequest -Uri 'https://pse.invisirisk.com/end' -Method POST -Headers $headers -Body $params -UseBasicParsing -Proxy "http://127.0.0.1:3128"
 
     - name: List logs maybe
