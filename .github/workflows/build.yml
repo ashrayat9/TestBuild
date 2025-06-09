@@ -44,14 +44,7 @@ jobs:
         Invoke-WebRequest -Uri "https://pse.invisirisk.com/ca" -OutFile "pse.crt" -SkipCertificateCheck -Proxy "http://127.0.0.1:3128"
         ls
         cat pse.crt
-        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2(".\pse.crt")
-        Write-Host "Subject: $($cert.Subject)"
-        Write-Host "Issuer: $($cert.Issuer)"
-        Write-Host "Thumbprint: $($cert.Thumbprint)"
-        Write-Host "Valid from: $($cert.NotBefore) to $($cert.NotAfter)
-        Get-ChildItem Cert:\CurrentUser\Root | Where-Object { $_.Thumbprint -eq $cert.Thumbprint }
-        curl.exe -v https://your.dev.server --cacert pse.crt
-        #import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root
+        import-Certificate -FilePath .\pse.crt -CertStoreLocation Cert:\CurrentUser\Root -Confirm:$false
         #certutil -user -addstore "Root" .\pse.crt
         
     - name: Start session
