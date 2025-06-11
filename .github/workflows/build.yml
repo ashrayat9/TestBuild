@@ -175,10 +175,13 @@ jobs:
       env:
         HTTP_PROXY: http://127.0.0.1:3128
         HTTPS_PROXY: http://127.0.0.1:3128
+        SCAN_ID: ${{ needs.create_scan_in_IR_Portal.outputs.scan_id }}
         # DOCKER_HTTP_PROXY : "http://127.0.0.1:3128"
         # DOCKER_HTTPS_PROXY : "http://127.0.0.1:3128"
         # DOCKER_NO_PROXY : "localhost,127.0.0.1"
       run: |
+        netsh winhttp set proxy proxy-server="127.0.0.1:3128"
+        netsh winhttp show proxy
         function Discover-PSEProxyIP {
         Write-Output "Attempting to discover PSE proxy container IP"
         $discoveredIP = ""
@@ -302,8 +305,8 @@ jobs:
         $dockerCertsDir = "$env:USERPROFILE\.docker\certs.d"
         New-Item -ItemType Directory -Path $dockerCertsDir -Force
         Copy-Item -Path "pse.crt" -Destination "$dockerCertsDir\ca.crt" -Force
-        docker pull hello-world
-        #docker build --no-cache --build-arg ir_proxy=http://${PROXY_IP}:3128 --build-arg host_ip=$PROXY_IP --build-arg SCAN_ID=$scan_id -t ir:latest .
+        docker pull ubuntu
+        docker build --no-cache --build-arg ir_proxy=http://${PROXY_IP}:3128 --build-arg host_ip=$PROXY_IP --build-arg SCAN_ID=$SCAN_ID -t ir:latest .
         
         
     - name: Install dependencies
