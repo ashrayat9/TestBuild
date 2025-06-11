@@ -170,6 +170,13 @@ jobs:
         HTTPS_PROXY: http://127.0.0.1:3128
       with:
         node-version: '20'
+    
+    - name: Set up Docker
+      env:
+        HTTP_PROXY: http://127.0.0.1:3128
+        HTTPS_PROXY: http://127.0.0.1:3128
+      run: |
+        
         
     - name: Install dependencies
       env:
