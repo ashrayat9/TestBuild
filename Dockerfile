@@ -1,65 +1,48 @@
-# Build stage
-FROM node:18-slim AS builder
+###########
+# BUILDER #
+###########
 
+# pull official base image
+FROM python:3.10.9-alpine as builder
+
+# set work directory
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y \
-    apt-transport-https \
-    iptables git \
-    ca-certificates \
-    curl 
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-RUN iptables -t nat -N pse \
-    iptables -t nat -A OUTPUT -j pse
-    PSE_IP=$(getent hosts ${containerName} | awk '{ print $1 }')
-    echo "PSE_IP is ${PSE_IP}"
-    iptables -t nat -A ${containerName} -p tcp -m tcp --dport 443 -j DNAT --to-destination ${PSE_IP}:12345
+######################################################################################################################## 
+                                                #Setting up PSE Requirements
+######################################################################################################################## 
+COPY pse.crt /usr/local/share/ca-certificates/pse.crt
+RUN update-ca-certificates
 
-ENV caFile /etc/ssl/certs/pse.pem
-RUN curl -s -o ${caFile} https://pse.invisirisk.com/ca \
-                -H 'User-Agent: Jenkins' \
-                --insecure
+ARG ir_proxy
+ARG host_ip
+ARG SCAN_ID
+ENV http_proxy=${ir_proxy}
+ENV https_proxy=${ir_proxy}
+ENV HTTP_PROXY=${ir_proxy}
+ENV HTTPS_PROXY=${ir_proxy}
+RUN echo "Value of https_proxy: $https_proxy"
+# For pip specifically, you might also need:
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
-RUN update ca-certificate 
+######################################################################################################################## 
+######################################################################################################################## 
 
-ENV NODE_EXTRA_CA_CERTS /etc/ssl/certs/pse.pem
-ENV REQUESTS_CA_BUNDLE /etc/ssl/certs/pse.pem
+RUN apk update 
+RUN apk upgrade 
+RUN apk add postgresql-dev gcc python3-dev musl-dev
 
-RUN npm config set cafile ${caFile} \
-    npm config set strict-ssl false
-                
-# Copy package files
-COPY package*.json ./
+# install dependencies
 
-# Install dependencies
-RUN npm install
+RUN pip install --upgrade pip && apk add --no-cache --virtual .build-deps build-base curl-dev
 
-# Copy app source
-COPY . .
-
-# Runtime stage
-FROM node:18-slim
-
-# Install Docker
-RUN apt-get update && \
-    apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release && \
-    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
-    apt-get update && \
-    apt-get install -y docker-ce-cli
-
-WORKDIR /app
-
-# Copy built application from builder stage
-COPY --from=builder /app .
-
-# Expose port
-EXPOSE 3000
-
-CMD ["npm", "start"]
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip

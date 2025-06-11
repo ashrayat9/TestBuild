@@ -175,7 +175,135 @@ jobs:
       env:
         HTTP_PROXY: http://127.0.0.1:3128
         HTTPS_PROXY: http://127.0.0.1:3128
+        # DOCKER_HTTP_PROXY : "http://127.0.0.1:3128"
+        # DOCKER_HTTPS_PROXY : "http://127.0.0.1:3128"
+        # DOCKER_NO_PROXY : "localhost,127.0.0.1"
       run: |
+        function Discover-PSEProxyIP {
+        Write-Output "Attempting to discover PSE proxy container IP"
+        $discoveredIP = ""
+
+        # First, check if Docker is available
+        if (Get-Command docker -ErrorAction SilentlyContinue) {
+            Write-Output "Docker is available, attempting to find PSE proxy container"
+
+            # Try to find the container by image name
+            Write-Output "Looking for PSE proxy container by image..."
+            try {
+                $pseContainers = docker ps --filter "ancestor=invisirisk/pse-proxy" --format "{{.Names}}" 2>$null | Out-String
+                $pseContainers = $pseContainers.Trim()
+            }
+            catch {
+                $pseContainers = ""
+            }
+          
+            # If not found, try with ECR path
+            if ([string]::IsNullOrEmpty($pseContainers)) {
+                Write-Output "Trying with ECR path..."
+                try {
+                    $pseContainers = docker ps --filter "ancestor=282904853176.dkr.ecr.us-west-2.amazonaws.com/invisirisk/pse-proxy" --format "{{.Names}}" 2>$null | Out-String
+                    $pseContainers = $pseContainers.Trim()
+                }
+                catch {
+                    $pseContainers = ""
+                }
+            }
+          
+            # If still not found, try with any available registry ID and region
+            if ([string]::IsNullOrEmpty($pseContainers) -and (-not [string]::IsNullOrEmpty($env:ECR_REGISTRY_ID)) -and (-not [string]::IsNullOrEmpty($env:ECR_REGION))) {
+                Write-Output "Trying with provided ECR registry ID and region..."
+                try {
+                    $pseContainers = docker ps --filter "ancestor=$($env:ECR_REGISTRY_ID).dkr.ecr.$($env:ECR_REGION).amazonaws.com/invisirisk/pse-proxy" --format "{{.Names}}" 2>$null | Out-String
+                    $pseContainers = $pseContainers.Trim()
+                }
+                catch {
+                    $pseContainers = ""
+                }
+            }
+          
+            # If containers found, get the IP of the first one
+            if (-not [string]::IsNullOrEmpty($pseContainers)) {
+                $containerName = ($pseContainers -split "`n")[0].Trim()
+                Write-Output "Found PSE proxy container: $containerName"
+                try {
+                    $discoveredIP = docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $containerName 2>$null | Out-String
+                    $discoveredIP = $discoveredIP.Trim()
+                    Write-Output "Discovered PSE proxy IP: $discoveredIP"
+                }
+                catch {
+                    $discoveredIP = ""
+                }
+            }
+            else {
+                Write-Output "No PSE proxy containers found by image name"
+            }
+        }
+        else {
+            Write-Output "Docker is not available, cannot discover container directly"
+        }
+      
+        # Try hostname resolution methods if Docker discovery failed
+        if ([string]::IsNullOrEmpty($discoveredIP)) {
+            # Basic hostname resolution - replace with your actual implementation
+            try {
+                if (-not [string]::IsNullOrEmpty($env:PROXY_HOSTNAME)) {
+                    $discoveredIP = [System.Net.Dns]::GetHostAddresses($env:PROXY_HOSTNAME)[0].IPAddressToString
+                    Write-Output "Resolved hostname $($env:PROXY_HOSTNAME) to IP: $discoveredIP"
+                }
+            }
+            catch {
+                Write-Output "Failed to resolve hostname: $($_.Exception.Message)"
+                $discoveredIP = ""
+            }
+        }
+      
+        return $discoveredIP
+        }
+          
+        # If PROXY_IP is not set, try to discover it
+        if ([string]::IsNullOrEmpty($env:PROXY_IP)) {
+            if ([string]::IsNullOrEmpty($env:PROXY_HOSTNAME)) {
+                Write-Output "PROXY_IP or PROXY_HOSTNAME not provided, attempting to discover PSE proxy IP"
+            }
+            else {
+                Write-Output "PROXY_HOSTNAME provided but PROXY_IP not set, resolving hostname to IP"
+            }
+          
+            $discoveredIP = Discover-PSEProxyIP
+          
+            if (-not [string]::IsNullOrEmpty($discoveredIP)) {
+                Write-Output "Successfully discovered PSE proxy IP: $discoveredIP"
+                
+                # Set environment variables in current PowerShell session
+                $env:PROXY_IP = $discoveredIP
+                $env:Discover_PSEProxyIP = $discoveredIP
+                
+                # Set GitHub Actions output
+                if (-not [string]::IsNullOrEmpty($env:GITHUB_OUTPUT)) {
+                    Add-Content -Path $env:GITHUB_OUTPUT -Value "PSE_PROXY_IP=$discoveredIP"
+                    Add-Content -Path $env:GITHUB_OUTPUT -Value "Discover_PSEProxyIP=$discoveredIP"
+                }
+                
+                # Set GitHub Environment variables for subsequent steps
+                if (-not [string]::IsNullOrEmpty($env:GITHUB_ENV)) {
+                    Add-Content -Path $env:GITHUB_ENV -Value "PSE_PROXY_IP=$discoveredIP"
+                    Add-Content -Path $env:GITHUB_ENV -Value "Discover_PSEProxyIP=$discoveredIP"
+                }
+                
+                Write-Output "Environment variables set: PROXY_IP and Discover_PSEProxyIP"
+            }
+            else {
+                Write-Error "ERROR: Could not discover PSE proxy IP automatically"
+                Write-Output "This may happen if the PSE proxy container is not running or not accessible"
+                Write-Output "You can provide proxy_ip or proxy_hostname input parameter to resolve this issue"
+                exit 1
+            }
+        }
+        $dockerCertsDir = "$env:USERPROFILE\.docker\certs.d"
+        New-Item -ItemType Directory -Path $dockerCertsDir -Force
+        Copy-Item -Path "pse.crt" -Destination "$dockerCertsDir\ca.crt" -Force
+        docker pull hello-world
+        #docker build --no-cache --build-arg ir_proxy=http://${PROXY_IP}:3128 --build-arg host_ip=$PROXY_IP --build-arg SCAN_ID=$scan_id -t ir:latest .
         
         
     - name: Install dependencies
