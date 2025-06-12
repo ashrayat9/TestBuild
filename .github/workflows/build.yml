@@ -27,8 +27,8 @@ jobs:
       uses: actions/checkout@v3
     - name: docker build 
       run: |
-        docker pull ubuntu
-        docker build --no-cache --build-arg ir_proxy=http://${PROXY_IP}:3128 --build-arg host_ip=$PROXY_IP --build-arg SCAN_ID=$SCAN_ID -t ir:latest .
+        docker pull --platform linux ubuntu
+        docker build --platform linux --no-cache --build-arg ir_proxy=http://${PROXY_IP}:3128 --build-arg host_ip=$PROXY_IP --build-arg SCAN_ID=$SCAN_ID -t ir:latest .
 
     - name: Setup pse
       env:
