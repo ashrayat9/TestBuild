@@ -294,6 +294,8 @@ jobs:
                 }
                 
                 Write-Output "Environment variables set: PROXY_IP and Discover_PSEProxyIP"
+                Write-Output "PROXY_IP: $env:PROXY_IP"
+                Write-Output "Discover_PSEProxyIP: $env:Discover_PSEProxyIP"
             }
             else {
                 Write-Error "ERROR: Could not discover PSE proxy IP automatically"
