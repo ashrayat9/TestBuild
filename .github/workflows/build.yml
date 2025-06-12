@@ -180,8 +180,8 @@ jobs:
         # DOCKER_HTTPS_PROXY : "http://127.0.0.1:3128"
         # DOCKER_NO_PROXY : "localhost,127.0.0.1"
       run: |
-        netsh winhttp set proxy proxy-server="127.0.0.1:3128"
-        netsh winhttp show proxy
+        #netsh winhttp set proxy proxy-server="127.0.0.1:3128"
+        #netsh winhttp show proxy
         # function Discover-PSEProxyIP {
         # Write-Output "Attempting to discover PSE proxy container IP"
         # $discoveredIP = ""
