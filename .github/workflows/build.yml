@@ -1,6 +1,6 @@
 name: Go Build (Windows)
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   create_scan_in_IR_Portal:
