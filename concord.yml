@@ -1,8 +1,10 @@
+configuration:
+  arguments:
+    myVar: "value"
+
 flows:
   default:
-    - log: "Starting the pipeline..."
-    - task: shell
+    - log: "Hello, Concord!"
+    - task: myTask
       in:
-        cmd: "echo Hello from Concord!"
-      out: shellOutput
-    - log: "Shell output: ${shellOutput}"
+        param1: "value1"
