@@ -1,0 +1,13 @@
+flows:
+  default:
+    - log: "Starting the pipeline..."
+    - task: shell
+      in:
+        cmd: "echo Hello from Concord!"
+      out: shellOutput
+    - log: "Shell output: ${shellOutput}"
+    - if: "${shellOutput.contains('Hello')}"
+      then:
+        - log: "Success! The shell command ran correctly."
+      else:
+        - log: "Something went wrong with the shell command."
