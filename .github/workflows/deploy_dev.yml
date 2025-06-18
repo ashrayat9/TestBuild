@@ -1,0 +1,76 @@
+name: Deploy Dev
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: Dev
+    steps:
+      - name: Setup PSE
+        uses: invisirisk/pse-action@v1.0.30
+        with:
+          api_url: "https://app.invisirisk.com"
+          app_token: ${{ secrets.IR_API_KEY }}
+      - name: Checkout code 📜
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2  # Specify the PHP version you need
+
+      - name: Set up Node.js ⚙️
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install node dependencies 🔎
+        working-directory: ./plugins/unified-communications
+        run: npm ci
+
+      - name: Install PHP dependencies 📦
+        working-directory: ./plugins/unified-communications
+        run: composer install
+
+      - name: Build project 🔧
+        working-directory: ./plugins/unified-communications
+        run: npm run build
+
+      # - name: Remove things we don't want to sync
+      #   run: |
+      #     rm -rf ./plugins/unified-communications/src/*.tsx
+      #     rm -rf ./plugins/unified-communications/src/*.ts
+      #     rm -rf ./plugins/unified-communications/src/*.css
+      #     rm -rf ./plugins/unified-communications/tst
+      #     rm -rf ./plugins/unified-communications/reports
+      #     rm -rf ./plugins/unified-communications/scripts
+      #     rm -rf ./plugins/unified-communications/*.xml
+      #     rm -rf ./plugins/unified-communications/node_modules
+      #     rm -rf ./plugins/unified-communications/tsconfig.json
+      #     rm -rf ./plugins/unified-communications/README.md
+      #     rm -rf ./plugins/unified-communications/webpack**
+      #     rm -rf ./plugins/unified-communications/package**
+      #     rm -rf ./plugins/unified-communications/.prettierrc
+      #     rm -rf ./plugins/unified-communications/package-lock**
+      #     rm -rf ./plugins/unified-communications/.git
+      #     rm -rf ./plugins/unified-communications/.gitignore
+      #     rm -rf ./plugins/unified-communications/.gitattributes
+
+      - name: Rsync and Update Plugins, Themes, and General Error
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.WPE_SSHG_KEY_PRIVATE }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan ${{ secrets.WPE_SSHG_HOST }} >> ~/.ssh/known_hosts
+          rsync -avz --delete-after ./themes/ ${{ secrets.SSH_LOGIN }}:~/sites/${{ secrets.SITE_FOLDER }}/wp-content/themes/
+          rsync -avz --delete-after ./plugins/ ${{ secrets.SSH_LOGIN }}:~/sites/${{ secrets.SITE_FOLDER }}/wp-content/plugins/
+          rsync -avz --delete-after ./general-error.html ${{ secrets.SSH_LOGIN }}:~/sites/${{ secrets.SITE_FOLDER }}/wp-content/
+          rsync -avz --delete-after ./duplicate-email-error.html ${{ secrets.SSH_LOGIN }}:~/sites/${{ secrets.SITE_FOLDER }}/wp-content/
+          rsync -avz --delete-after ./php-error.php ${{ secrets.SSH_LOGIN }}:~/sites/${{ secrets.SITE_FOLDER }}/wp-content/
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@v1.0.30
+        with:
+          cleanup: "true"
