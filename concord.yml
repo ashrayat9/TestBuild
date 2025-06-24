@@ -1,13 +1,14 @@
-configuration: 
-  arguments: 
-    myVar: "value" 
+configuration:
+  arguments:
+    nodeVersion: "20"  # Specify the Node.js version
+    workingDir: "${workspace}/my-project"  # Directory where package.json is located
 
-flows: 
-  default: 
-    - log: "Hello, Concord!" 
-    - call: myTask
-      in: 
-        param1: "value1"
-  
-  myTask:  # Define the task as a flow
-    - log: "This is myTask running with param: ${param1}"
+flows:
+  default:
+    - log: "Starting npm install..."
+    - task: docker
+      in:
+        image: "node:${nodeVersion}"  # Use the specified Node.js Docker image
+        cmd: "npm install"
+        workDir: "${workingDir}"  # Set the working directory inside the container
+    - log: "npm install completed successfully!"
