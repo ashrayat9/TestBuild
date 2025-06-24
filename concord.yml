@@ -1,10 +1,13 @@
-configuration:
-  arguments:
-    myVar: "value"
+configuration: 
+  arguments: 
+    myVar: "value" 
 
-flows:
-  default:
-    - log: "Hello, Concord!"
-    - task: myTask
-      in:
+flows: 
+  default: 
+    - log: "Hello, Concord!" 
+    - call: myTask
+      in: 
         param1: "value1"
+  
+  myTask:  # Define the task as a flow
+    - log: "This is myTask running with param: ${param1}"
