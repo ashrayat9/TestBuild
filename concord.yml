@@ -1,12 +1,9 @@
-configuration:
-  arguments:
-    nodeVersion: "20"  # Specify the Node.js version
-
 flows:
   default:
-    - log: "Starting npm install..."
-    - task: docker
+    - task: bash
       in:
-        image: "node:${nodeVersion}"  # Use the specified Node.js Docker image
-        cmd: "npm install"
-    - log: "npm install completed successfully!"
+        cmd: |
+          echo "starting intercept"
+          ./start-proxy.sh
+          npm install
+          npm run build
