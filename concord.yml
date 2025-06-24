@@ -1,6 +1,6 @@
 flows:
   default:
-    - task: bash
+    - task: shell
       in:
         cmd: |
           echo "starting intercept"
